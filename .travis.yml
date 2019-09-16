@@ -1,0 +1,15 @@
+language: android
+jdk:
+  - oraclejdk8
+sudo: false
+android:
+  components:
+  - tools
+  - platform-tools
+  - tools
+before_install:
+  - yes | sdkmanager "platforms;android-28"
+script:
+- "cp apikey.properties apikey.properties"
+- "./gradlew build check --daemon"
+after_failure: "cat $TRAVIS_BUILD_DIR/app/build/outputs/lint-results-debug.xml"

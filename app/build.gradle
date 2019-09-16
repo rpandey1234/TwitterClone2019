@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+def apikeyPropertiesFile = rootProject.file("apikey.properties")
+def apikeyProperties = new Properties()
+apikeyProperties.load(new FileInputStream(apikeyPropertiesFile))
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "com.codepath.apps.restclienttemplate"
+        minSdkVersion 21
+        targetSdkVersion 28
+
+        // Room schemas
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
+        buildConfigField("String", "CONSUMER_KEY", apikeyProperties['CONSUMER_KEY'])
+        buildConfigField("String", "CONSUMER_SECRET", apikeyProperties['CONSUMER_SECRET'])
+    }
+
+    // Related to https://github.com/scribejava/scribejava/issues/480
+    // Scribe expects Java 7 or this custom Apache library
+    lintOptions {
+        lintConfig rootProject.file('gradle/lint.xml')
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: '*.jar')
+    implementation 'com.codepath.libraries:android-oauth-handler:2.2.0'
+    implementation 'commons-codec:commons-codec:1.10'
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    // Glide for remote image loading
+    implementation 'com.github.bumptech.glide:glide:4.10.0-SNAPSHOT'
+    // Room for simple persistence with an ORM
+    def room_version = "2.1.0"
+    implementation "androidx.room:room-runtime:$room_version"
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    implementation 'com.facebook.stetho:stetho:1.5.1'
+    implementation 'androidx.recyclerview:recyclerview:1.0.0'
+}
