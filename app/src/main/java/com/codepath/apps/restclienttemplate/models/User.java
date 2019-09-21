@@ -1,15 +1,32 @@
 package com.codepath.apps.restclienttemplate.models;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.parceler.Parcel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Parcel
+@Entity
 public class User {
 
+    @ColumnInfo
     public String name;
+
+    @ColumnInfo
+    @PrimaryKey
     public long uid;
+
+    @ColumnInfo
     public String screenName;
+
+    @ColumnInfo
     public String profileImageUrl;
 
     // empty constructor needed by the Parceler library
@@ -24,4 +41,11 @@ public class User {
         return user;
     }
 
+    public static List<User> fromJsonTweetArray(JSONArray jsonArray) throws JSONException {
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            users.add(fromJson(jsonArray.getJSONObject(i).getJSONObject("user")));
+        }
+        return users;
+    }
 }
