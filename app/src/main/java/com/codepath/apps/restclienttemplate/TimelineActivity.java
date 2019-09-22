@@ -40,8 +40,7 @@ public class TimelineActivity extends AppCompatActivity {
     List<Tweet> tweets;
     TweetDao tweetDao;
     SwipeRefreshLayout swipeContainer;
-
-    boolean shouldDisplayLocalTweets;
+    EndlessRecyclerViewScrollListener scrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,9 +55,19 @@ public class TimelineActivity extends AppCompatActivity {
         tweets = new ArrayList<>();
         adapter = new TweetsAdapter(this, tweets);
         // Recycler view setup: layout manager and setup manager
-        rvTweets.setLayoutManager(new LinearLayoutManager(this));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        rvTweets.setLayoutManager(layoutManager);
         rvTweets.setAdapter(adapter);
 
+        scrollListener = new EndlessRecyclerViewScrollListener(layoutManager) {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view) {
+                // Triggered only when new data needs to be appended to the list
+                // Add whatever code is needed to append new items to the bottom of the list
+                loadMoreData();
+            }
+        };
+        rvTweets.addOnScrollListener(scrollListener);
         swipeContainer = findViewById(R.id.swipeContainer);
         // Configure the refreshing colors
         swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -73,22 +82,44 @@ public class TimelineActivity extends AppCompatActivity {
             }
         });
 
-        shouldDisplayLocalTweets = true;
         tweetDao = ((TwitterApp) getApplicationContext()).getTwitterDatabase().tweetDao();
         AsyncTask.execute(new Runnable() {
             @Override
             public void run() {
-                if (shouldDisplayLocalTweets) {
-                    List<TweetWithUser> tweetsFromDatabase = tweetDao.recentItems();
-                    adapter.clear();
-                    Log.i(TAG, "Showing data from database");
-                    List<Tweet> tweetList = TweetWithUser.getTweetList(tweetsFromDatabase);
-                    adapter.addAll(tweetList);
-                }
-
+                List<TweetWithUser> tweetsFromDatabase = tweetDao.recentItems();
+                adapter.clear();
+                Log.i(TAG, "Showing data from database");
+                List<Tweet> tweetList = TweetWithUser.getTweetList(tweetsFromDatabase);
+                adapter.addAll(tweetList);
             }
         });
         populateHomeTimeline();
+    }
+
+    private void loadMoreData() {
+        Log.i(TAG, "loadMoreData");
+        // 1. Send an API request to retrieve appropriate paginated data
+        twitterClient.getNextPageOfTweets(tweets.get(tweets.size() - 1).uid, new JsonHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json) {
+                Log.i(TAG, "Success for loadMoreData: " + tweets.size());
+                // 2. Deserialize and construct new model objects from the API response
+                // 3. Append the new data objects to the existing set of items inside the array of items
+                // 4. Notify the adapter of the new items made with `notifyItemRangeInserted()`
+                try {
+                    final List<Tweet> freshTweets = Tweet.fromJsonArray(json.jsonArray);
+                    Log.i(TAG, "Going to add this many tweets: " + freshTweets.size());
+                    adapter.addAll(freshTweets);
+                } catch (JSONException e) {
+                    Log.e(TAG, "JSONException with load more data", e);
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable) {
+                Log.e(TAG, "onFailure for loading more tweets", throwable);
+            }
+        });
     }
 
     @Override
@@ -146,7 +177,6 @@ public class TimelineActivity extends AppCompatActivity {
 
                     // Now we call setRefreshing(false) to signal refresh has finished
                     swipeContainer.setRefreshing(false);
-                    shouldDisplayLocalTweets = false;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
