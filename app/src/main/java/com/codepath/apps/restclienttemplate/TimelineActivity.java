@@ -101,7 +101,6 @@ public class TimelineActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.compose) {
             // Tapped on compose icon
-//            Toast.makeText(this, "compose!", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(this, ComposeActivity.class);
             startActivityForResult(intent, REQUEST_CODE);
             return true;
@@ -135,8 +134,13 @@ public class TimelineActivity extends AppCompatActivity {
                     AsyncTask.execute(new Runnable() {
                         @Override
                         public void run() {
-                            tweetDao.insertModel(freshUsers.toArray(new User[0]));
-                            tweetDao.insertModel(freshTweets.toArray(new Tweet[0]));
+                            ((TwitterApp) getApplicationContext()).getTwitterDatabase().runInTransaction(new Runnable() {
+                                @Override
+                                public void run() {
+                                    tweetDao.insertModel(freshUsers.toArray(new User[0]));
+                                    tweetDao.insertModel(freshTweets.toArray(new Tweet[0]));
+                                }
+                            });
                         }
                     });
 
