@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +15,7 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.codepath.apps.restclienttemplate.models.Tweet;
+import com.codepath.apps.restclienttemplate.models.TweetDao;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 
 import org.json.JSONArray;
@@ -35,7 +37,9 @@ public class TimelineActivity extends AppCompatActivity {
     RecyclerView rvTweets;
     TweetsAdapter adapter;
     List<Tweet> tweets;
+    TweetDao tweetDao;
     SwipeRefreshLayout swipeContainer;
+    boolean shouldDisplayLocalTweets;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +68,21 @@ public class TimelineActivity extends AppCompatActivity {
             public void onRefresh() {
                 Log.i(TAG, "fetching new data!");
                 populateHomeTimeline();
+            }
+        });
+
+        shouldDisplayLocalTweets = true;
+        tweetDao = ((TwitterApp) getApplicationContext()).getTwitterDatabase().tweetDao();
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                if (shouldDisplayLocalTweets) {
+                    List<Tweet> tweetsFromDatabase = tweetDao.recentItems();
+                    adapter.clear();
+                    Log.i(TAG, "Showing data from database");
+                    adapter.addAll(tweetsFromDatabase);
+                }
+
             }
         });
 
@@ -106,9 +125,20 @@ public class TimelineActivity extends AppCompatActivity {
             public void onSuccess(int statusCode, Headers headers, JSON json) {
                 Log.d(TAG, "onSuccess");
                 try {
-                    JSONArray jsonArray = json.jsonArray;
-                    tweets.addAll(Tweet.fromJsonArray(jsonArray));
-                    adapter.notifyDataSetChanged();
+                    adapter.clear();
+                    final List<Tweet> freshTweets = Tweet.fromJsonArray(json.jsonArray) ;
+                    adapter.addAll(freshTweets);
+                    // TODO: there should be some mechanism to delete content from the SQL lite DB periodically
+                    AsyncTask.execute(new Runnable() {
+                        @Override
+                        public void run() {
+                            tweetDao.insertModel(freshTweets.toArray(new Tweet[0]));
+                        }
+                    });
+
+                    // Now we call setRefreshing(false) to signal refresh has finished
+                    swipeContainer.setRefreshing(false);
+                    shouldDisplayLocalTweets = false;
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }

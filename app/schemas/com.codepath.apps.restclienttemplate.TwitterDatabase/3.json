@@ -1,0 +1,108 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "ed69f34d4c573719f34d2b49794b033c",
+    "entities": [
+      {
+        "tableName": "Tweet",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`body` TEXT, `uid` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `createdAt` TEXT, `name` TEXT, `userid` INTEGER, `screenName` TEXT, `profileImageUrl` TEXT)",
+        "fields": [
+          {
+            "fieldPath": "body",
+            "columnName": "body",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "uid",
+            "columnName": "uid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "user.name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "user.userid",
+            "columnName": "userid",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "user.screenName",
+            "columnName": "screenName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "user.profileImageUrl",
+            "columnName": "profileImageUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "uid"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "User",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`name` TEXT, `userid` INTEGER NOT NULL, `screenName` TEXT, `profileImageUrl` TEXT, PRIMARY KEY(`userid`))",
+        "fields": [
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "userid",
+            "columnName": "userid",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "screenName",
+            "columnName": "screenName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "profileImageUrl",
+            "columnName": "profileImageUrl",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "userid"
+          ],
+          "autoGenerate": false
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ed69f34d4c573719f34d2b49794b033c')"
+    ]
+  }
+}

@@ -1,5 +1,10 @@
 package com.codepath.apps.restclienttemplate.models;
 
+import androidx.room.ColumnInfo;
+import androidx.room.Embedded;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -9,11 +14,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Parcel
+@Entity
 public class Tweet {
 
+    @ColumnInfo
     public String body;
+
+    @PrimaryKey(autoGenerate=true)
+    @ColumnInfo
     public long uid;
+
+    @ColumnInfo
     public String createdAt;
+
+    @Embedded
     public User user;
 
     // empty constructor needed by the Parceler library

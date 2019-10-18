@@ -19,6 +19,7 @@ import com.facebook.stetho.Stetho;
 public class TwitterApp extends Application {
 
     MyDatabase myDatabase;
+    TwitterDatabase twitterDatabase;
 
     @Override
     public void onCreate() {
@@ -27,6 +28,9 @@ public class TwitterApp extends Application {
 		// fallbackToDestructiveMigration()
         myDatabase = Room.databaseBuilder(this, MyDatabase.class,
                 MyDatabase.NAME).fallbackToDestructiveMigration().build();
+
+        twitterDatabase = Room.databaseBuilder(this, TwitterDatabase.class,
+                TwitterDatabase.NAME).fallbackToDestructiveMigration().build();
 
         // use chrome://inspect to inspect your SQL database
         Stetho.initializeWithDefaults(this);
@@ -38,5 +42,9 @@ public class TwitterApp extends Application {
 
     public MyDatabase getMyDatabase() {
         return myDatabase;
+    }
+
+    public TwitterDatabase getTwitterDatabase() {
+        return twitterDatabase;
     }
 }
